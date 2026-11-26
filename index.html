@@ -11,6 +11,8 @@
       --card-border: rgba(255, 255, 255, 0.09);
       --text: #f3f4f6;
       --text-muted: #9ca3af;
+      --ease-120: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     * {
@@ -30,10 +32,36 @@
       min-height: 100dvh;
       padding: 14px;
       overflow-x: hidden;
+      position: relative;
+    }
+
+    /* GPU-кэштелген статикалық жарық (120fps кезінде blur қайта есептелмеуі үшін) */
+    .ambient-orb {
+      position: fixed;
+      top: -80px;
+      left: 50%;
+      width: 340px;
+      height: 340px;
+      transform: translate3d(-50%, 0, 0);
+      background: radial-gradient(circle, rgba(52, 211, 153, 0.14) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes cardAppear {
+      0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.985); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+
+    @keyframes tabPop {
+      0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.88); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
 
     .card {
-      background: rgba(20, 30, 26, 0.78);
+      position: relative;
+      z-index: 1;
+      background: rgba(20, 30, 26, 0.82);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       width: 100%;
@@ -42,6 +70,9 @@
       border-radius: 32px;
       border: 1px solid var(--card-border);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transform: translateZ(0);
+      contain: layout style;
+      animation: cardAppear 0.55s var(--ease-120) both;
     }
 
     h1 {
@@ -61,8 +92,9 @@
       line-height: 1.4;
     }
 
-    /* Академиялық периодтар табтары */
+    /* Академиялық периодтар табтары + GPU FLIP индикаторы */
     .periods-bar {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -79,7 +111,24 @@
       display: none;
     }
 
+    .period-glider {
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 0;
+      transform-origin: 0 50%;
+      border-radius: 13px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(52, 211, 153, 0.14) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      box-shadow: 0 2px 12px rgba(16, 185, 129, 0.18);
+      pointer-events: none;
+      will-change: transform;
+      z-index: 0;
+    }
+
     .period-tab {
+      position: relative;
+      z-index: 1;
       flex: none;
       background: transparent;
       border: 1px solid transparent;
@@ -89,18 +138,26 @@
       font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
       white-space: nowrap;
+      will-change: transform;
+      transition: color 0.28s var(--ease-120), transform 0.22s var(--ease-120);
+    }
+
+    .period-tab.is-new {
+      animation: tabPop 0.34s var(--ease-spring) both;
     }
 
     .period-tab.active {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(52, 211, 153, 0.14) 100%);
-      border-color: rgba(52, 211, 153, 0.45);
       color: #fff;
-      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
+    }
+
+    .period-tab:active {
+      transform: translate3d(0, 0, 0) scale(0.95);
     }
 
     .period-add {
+      position: relative;
+      z-index: 1;
       flex: none;
       background: transparent;
       border: 1px dashed rgba(52, 211, 153, 0.45);
@@ -111,11 +168,13 @@
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
-      transition: background 0.2s ease;
+      will-change: transform;
+      transition: background-color 0.25s var(--ease-120), transform 0.22s var(--ease-120);
     }
 
     .period-add:active {
-      background: rgba(52, 211, 153, 0.12);
+      background-color: rgba(52, 211, 153, 0.16);
+      transform: translate3d(0, 0, 0) scale(0.95);
     }
 
     /* Белсенді период атауы мен жою батырмасы */
@@ -124,9 +183,11 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 10px;
+      will-change: transform, opacity;
     }
 
     .period-name-wrap {
+      position: relative;
       flex: 1;
       min-width: 0;
       display: flex;
@@ -137,11 +198,23 @@
       border-radius: 14px;
       padding: 0 12px;
       height: 40px;
-      transition: border-color 0.25s;
     }
 
-    .period-name-wrap:focus-within {
-      border-color: var(--primary);
+    .period-name-wrap::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid var(--primary);
+      box-shadow: 0 0 14px rgba(52, 211, 153, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+      transition: opacity 0.26s var(--ease-120);
+    }
+
+    .period-name-wrap:focus-within::after {
+      opacity: 1;
     }
 
     .period-badge-tag {
@@ -175,17 +248,19 @@
       font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      will-change: transform;
+      transition: background-color 0.25s var(--ease-120), color 0.25s var(--ease-120), transform 0.2s var(--ease-120);
     }
 
     .period-remove-btn:active {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: rgba(239, 68, 68, 0.4);
+      background-color: rgba(239, 68, 68, 0.22);
       color: #fca5a5;
+      transform: translate3d(0, 0, 0) scale(0.95);
     }
 
-    /* Пән ауыстырғыш табтар */
+    /* Пән ауыстырғыш табтар + GPU FLIP индикаторы */
     .tabs-bar {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -199,9 +274,26 @@
       display: none;
     }
 
+    .subj-glider {
+      position: absolute;
+      top: 0;
+      bottom: 2px;
+      left: 0;
+      transform-origin: 0 50%;
+      border-radius: 14px;
+      background: rgba(52, 211, 153, 0.16);
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      box-shadow: 0 2px 12px rgba(52, 211, 153, 0.14);
+      pointer-events: none;
+      will-change: transform;
+      z-index: 0;
+    }
+
     .tab-btn {
+      position: relative;
+      z-index: 1;
       flex: none;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
       border-radius: 14px;
@@ -209,17 +301,28 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
       white-space: nowrap;
+      will-change: transform;
+      transition: color 0.28s var(--ease-120), background-color 0.28s var(--ease-120), border-color 0.28s var(--ease-120), transform 0.22s var(--ease-120);
+    }
+
+    .tab-btn.is-new {
+      animation: tabPop 0.34s var(--ease-spring) both;
     }
 
     .tab-btn.active {
-      background: rgba(52, 211, 153, 0.16);
-      border-color: rgba(52, 211, 153, 0.5);
       color: #fff;
+      background-color: transparent;
+      border-color: transparent;
+    }
+
+    .tab-btn:active {
+      transform: translate3d(0, 0, 0) scale(0.95);
     }
 
     .tab-add {
+      position: relative;
+      z-index: 1;
       flex: none;
       background: transparent;
       border: 1px dashed rgba(52, 211, 153, 0.5);
@@ -230,11 +333,13 @@
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
-      transition: background 0.2s ease;
+      will-change: transform;
+      transition: background-color 0.25s var(--ease-120), transform 0.22s var(--ease-120);
     }
 
     .tab-add:active {
-      background: rgba(52, 211, 153, 0.12);
+      background-color: rgba(52, 211, 153, 0.16);
+      transform: translate3d(0, 0, 0) scale(0.95);
     }
 
     /* Subject block */
@@ -244,6 +349,8 @@
       border-radius: 26px;
       padding: 16px;
       margin-bottom: 14px;
+      contain: layout style;
+      will-change: transform, opacity;
     }
 
     .subj-head {
@@ -253,26 +360,47 @@
       margin-bottom: 12px;
     }
 
-    .name-input {
+    .name-input-wrap {
+      position: relative;
       flex: 1;
       min-width: 0;
       height: 46px;
       background: rgba(255, 255, 255, 0.035);
       border: 1px solid var(--card-border);
       border-radius: 16px;
+    }
+
+    .name-input-wrap::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid var(--primary);
+      box-shadow: 0 0 14px rgba(52, 211, 153, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+      transition: opacity 0.26s var(--ease-120);
+    }
+
+    .name-input-wrap:focus-within::after {
+      opacity: 1;
+    }
+
+    .name-input {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
       padding: 0 14px;
       color: #fff;
       font-size: 16px;
       font-weight: 700;
       outline: none;
-      transition: border-color 0.25s;
-    }
-
-    .name-input:focus {
-      border-color: var(--primary);
     }
 
     .credit-box {
+      position: relative;
       flex: none;
       width: 82px;
       height: 46px;
@@ -283,11 +411,23 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      transition: border-color 0.25s;
     }
 
-    .credit-box:focus-within {
-      border-color: var(--primary);
+    .credit-box::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid var(--primary);
+      box-shadow: 0 0 14px rgba(52, 211, 153, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+      transition: opacity 0.26s var(--ease-120);
+    }
+
+    .credit-box:focus-within::after {
+      opacity: 1;
     }
 
     .credit-box label {
@@ -318,16 +458,17 @@
       color: var(--text-muted);
       font-size: 14px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      will-change: transform;
+      transition: background-color 0.25s var(--ease-120), color 0.25s var(--ease-120), transform 0.2s var(--ease-120);
     }
 
     .remove-btn:active {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: rgba(239, 68, 68, 0.4);
+      background-color: rgba(239, 68, 68, 0.25);
       color: #fca5a5;
+      transform: translate3d(0, 0, 0) scale(0.9);
     }
 
-    /* Inputs */
+    /* Inputs — opacity-based GPU focus glow (zero box-shadow repaint) */
     .rk-row {
       display: flex;
       gap: 12px;
@@ -335,18 +476,37 @@
     }
 
     .input-box {
+      position: relative;
       flex: 1;
       min-width: 0;
       background: rgba(255, 255, 255, 0.035);
       border: 1px solid var(--card-border);
       padding: 12px 14px;
       border-radius: 18px;
-      transition: border-color 0.25s, box-shadow 0.25s;
+      will-change: transform;
+      transition: transform 0.26s var(--ease-120), background-color 0.26s var(--ease-120);
+    }
+
+    .input-box::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid var(--primary);
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+      transition: opacity 0.26s var(--ease-120);
     }
 
     .input-box:focus-within {
-      border-color: var(--primary);
-      box-shadow: 0 0 10px rgba(52, 211, 153, 0.18);
+      background-color: rgba(255, 255, 255, 0.055);
+      transform: translate3d(0, -1px, 0);
+    }
+
+    .input-box:focus-within::after {
+      opacity: 1;
     }
 
     .input-box label {
@@ -356,6 +516,11 @@
       color: var(--text-muted);
       margin-bottom: 5px;
       text-transform: uppercase;
+      transition: color 0.25s var(--ease-120);
+    }
+
+    .input-box:focus-within label {
+      color: #a7f3d0;
     }
 
     .input-box input {
@@ -385,11 +550,14 @@
       color: var(--primary);
       margin-top: 4px;
       font-weight: 500;
+      font-variant-numeric: tabular-nums;
     }
 
-    /* Subject Result */
+    /* Subject Result — GPU opacity crossfade between emerald & crimson states */
     .result-glow-box {
-      background: radial-gradient(100% 100% at 50% 0%, rgba(52, 211, 153, 0.16) 0%, rgba(0, 0, 0, 0) 100%);
+      position: relative;
+      overflow: hidden;
+      background: rgba(52, 211, 153, 0.05);
       border: 1px solid rgba(52, 211, 153, 0.3);
       border-radius: 22px;
       padding: 16px;
@@ -398,15 +566,50 @@
       box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
     }
 
+    .result-glow-box::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(100% 100% at 50% 0%, rgba(52, 211, 153, 0.16) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .result-glow-box::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(100% 100% at 50% 0%, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.05) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.12);
+      opacity: 0;
+      pointer-events: none;
+      will-change: opacity;
+      transition: opacity 0.35s var(--ease-120);
+    }
+
+    .result-glow-box.is-fail::after {
+      opacity: 1;
+    }
+
     .res-label {
+      position: relative;
+      z-index: 1;
       font-size: 11px;
       color: #6ee7b7;
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.8px;
+      transition: color 0.3s var(--ease-120);
+    }
+
+    .result-glow-box.is-fail .res-label {
+      color: #fca5a5;
     }
 
     .score-container {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -418,34 +621,55 @@
       font-size: 40px;
       font-weight: 900;
       color: #fff;
-      text-shadow: 0 0 18px rgba(52, 211, 153, 0.55);
+      text-shadow: 0 0 18px rgba(52, 211, 153, 0.5);
       line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
     .badge-grade {
-      background: #10b981;
+      background-color: #10b981;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
       color: #ffffff;
       padding: 5px 12px;
       border-radius: 12px;
       font-size: 13px;
       font-weight: 800;
+      will-change: transform;
+      transition: background-color 0.3s var(--ease-120);
     }
 
     .badge-grade.fail {
-      background: #ef4444;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      background-color: #ef4444;
+    }
+
+    /* Аккордеон ескерту анимациясы */
+    .warning-wrap {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      margin-top: 0;
+      transition: grid-template-rows 0.34s var(--ease-120), opacity 0.28s var(--ease-120), margin-top 0.34s var(--ease-120);
+    }
+
+    .warning-wrap.show {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 12px;
+    }
+
+    .warning-inner {
+      overflow: hidden;
     }
 
     .warning {
-      display: none;
       padding: 9px 10px;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.25);
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.28);
       border-radius: 12px;
       color: #fca5a5;
       font-size: 11px;
-      margin-top: 12px;
       text-align: center;
     }
 
@@ -474,6 +698,7 @@
     .targets strong {
       color: #fff;
       text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     /* Bottom GPA (Период + Жалпы) + Reset Bar */
@@ -524,6 +749,7 @@
       color: #fff;
       text-shadow: 0 0 14px rgba(52, 211, 153, 0.45);
       line-height: 1.05;
+      font-variant-numeric: tabular-nums;
     }
 
     .gpa-meta {
@@ -545,12 +771,13 @@
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      will-change: transform;
+      transition: background-color 0.25s var(--ease-120), transform 0.2s var(--ease-120);
     }
 
     .btn-action:active {
-      background: rgba(52, 211, 153, 0.12);
-      border-color: var(--primary);
+      background-color: rgba(52, 211, 153, 0.16);
+      transform: translate3d(0, 0, 0) scale(0.95);
     }
 
     @media (max-width: 375px) {
@@ -561,19 +788,31 @@
       .gpa-score { font-size: 20px; }
       .btn-action { padding: 0 12px; font-size: 12.5px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
+
+  <div class="ambient-orb"></div>
 
   <div class="card">
     <h1>Рейтинг калькуляторы</h1>
     <div class="subtitle">Қорытынды балл: ((РК1 + РК2) ÷ 2 × 0,6) + (Емтихан × 0,4)</div>
 
     <!-- Академиялық периодтар -->
-    <div class="periods-bar" id="periodsBar"></div>
+    <div class="periods-bar" id="periodsBar">
+      <div class="period-glider" id="periodGlider"></div>
+    </div>
 
     <!-- Белсенді период атауы -->
-    <div class="period-header">
+    <div class="period-header" id="periodHeader">
       <div class="period-name-wrap">
         <span class="period-badge-tag">Период</span>
         <input class="period-name-input" id="periodNameInput" type="text" maxlength="30" aria-label="Академиялық период атауы" oninput="renameCurrentPeriod(this.value)">
@@ -582,12 +821,16 @@
     </div>
 
     <!-- Белсенді периодтағы пәндер табтары -->
-    <div class="tabs-bar" id="tabsBar"></div>
+    <div class="tabs-bar" id="tabsBar">
+      <div class="subj-glider" id="subjGlider"></div>
+    </div>
 
     <!-- Белсенді пән картасы -->
-    <div class="subject">
+    <div class="subject" id="subjectCard">
       <div class="subj-head">
-        <input class="name-input" id="subjName" type="text" maxlength="40" aria-label="Пән атауы" oninput="handleFieldInput()">
+        <div class="name-input-wrap">
+          <input class="name-input" id="subjName" type="text" maxlength="40" aria-label="Пән атауы" oninput="handleFieldInput()">
+        </div>
         <div class="credit-box">
           <label for="subjCredit">Кредит</label>
           <input id="subjCredit" type="number" inputmode="decimal" min="1" max="20" step="any" oninput="handleFieldInput()">
@@ -621,13 +864,17 @@
         </div>
       </div>
 
-      <div class="result-glow-box">
+      <div class="result-glow-box" id="resultGlowBox">
         <div class="res-label">Қорытынды балл</div>
         <div class="score-container">
           <div class="final-score" id="totalScore">0.0</div>
           <div class="badge-grade" id="gradeBadge">—</div>
         </div>
-        <div class="warning" id="warningBox"></div>
+        <div class="warning-wrap" id="warningWrap">
+          <div class="warning-inner">
+            <div class="warning" id="warningBox"></div>
+          </div>
+        </div>
       </div>
 
       <div class="targets">
@@ -673,6 +920,16 @@
       "C+": 2.33, "C": 2.0, "C-": 1.67, "D+": 1.33, "D": 1.0, "F": 0
     };
 
+    /* DOM сілтемелерін бір рет кэштеу (кадр сайын DOM іздеуді болдырмау) */
+    const EL = {};
+    [
+      "periodsBar", "periodGlider", "periodHeader", "periodNameInput", "removePeriodBtn",
+      "tabsBar", "subjGlider", "subjectCard", "subjName", "subjCredit", "removeSubjBtn",
+      "subjRk1", "rk1Part", "subjRk2", "rk2Part", "subjExam", "examPart", "subjTarget",
+      "resultGlowBox", "totalScore", "gradeBadge", "warningWrap", "warningBox",
+      "rdAvg", "needTarget", "periodGpaValue", "periodGpaMeta", "totalGpaValue", "totalGpaMeta"
+    ].forEach(id => { EL[id] = document.getElementById(id); });
+
     function createEmptySubject() {
       return { name: "", credit: "3", rk1: "", rk2: "", exam: "", target: "" };
     }
@@ -685,6 +942,158 @@
       activePeriodIndex: 0,
       periods: [createEmptyPeriod()]
     };
+
+    /* Бірыңғай 120Hz rAF жоспарлаушы (барлық сандар бір кадр циклінде жаңарады) */
+    const numCurrent = {};
+    const activeTweens = new Map();
+    let tweenRafId = 0;
+
+    function runTweenFrame(now) {
+      tweenRafId = 0;
+      activeTweens.forEach((tw, id) => {
+        const el = EL[id];
+        if (!el) {
+          activeTweens.delete(id);
+          return;
+        }
+        const rawProgress = Math.min((now - tw.start) / tw.duration, 1);
+        const eased = 1 - Math.pow(1 - rawProgress, 4);
+        const val = tw.from + (tw.to - tw.from) * eased;
+        numCurrent[id] = val;
+        el.textContent = tw.prefix + val.toFixed(tw.decimals);
+
+        if (rawProgress >= 1) {
+          numCurrent[id] = tw.to;
+          el.textContent = tw.prefix + tw.to.toFixed(tw.decimals);
+          activeTweens.delete(id);
+        }
+      });
+
+      if (activeTweens.size > 0) {
+        tweenRafId = requestAnimationFrame(runTweenFrame);
+      }
+    }
+
+    function animateNumber(id, target, decimals = 1, prefix = "", fallback = "—") {
+      const el = EL[id];
+      if (!el) return;
+
+      if (target === null || isNaN(target)) {
+        activeTweens.delete(id);
+        delete numCurrent[id];
+        el.textContent = fallback;
+        return;
+      }
+
+      const startVal = typeof numCurrent[id] === "number" ? numCurrent[id] : target;
+      if (Math.abs(target - startVal) < 0.0005) {
+        activeTweens.delete(id);
+        numCurrent[id] = target;
+        el.textContent = prefix + target.toFixed(decimals);
+        return;
+      }
+
+      activeTweens.set(id, {
+        from: startVal,
+        to: target,
+        start: performance.now(),
+        duration: 300,
+        decimals,
+        prefix
+      });
+
+      if (!tweenRafId) {
+        tweenRafId = requestAnimationFrame(runTweenFrame);
+      }
+    }
+
+    /* 100% GPU Compositor-ға негізделген FLIP Glider (width reflow жоқ) */
+    const gliderMeta = {};
+
+    function moveGlider(bar, glider, key) {
+      if (!bar || !glider) return;
+      const activeBtn = bar.querySelector(".active");
+      if (!activeBtn) {
+        glider.style.opacity = "0";
+        return;
+      }
+
+      // DOM оқуларын бірге орындау
+      const nextX = activeBtn.offsetLeft;
+      const nextW = activeBtn.offsetWidth;
+      const prev = gliderMeta[key];
+
+      glider.style.opacity = "1";
+
+      if (!prev || !glider.animate) {
+        glider.style.width = nextW + "px";
+        glider.style.transform = `translate3d(${nextX}px, 0, 0) scaleX(1)`;
+        gliderMeta[key] = { x: nextX, w: nextW, anim: null };
+        return;
+      }
+
+      let fromX = prev.x;
+      let fromW = prev.w;
+
+      if (prev.anim && prev.anim.playState === "running") {
+        const computed = getComputedStyle(glider).transform;
+        if (computed && computed !== "none") {
+          const m = new DOMMatrix(computed);
+          fromX = m.m41;
+          fromW = prev.w * m.a;
+        }
+        prev.anim.cancel();
+      }
+
+      glider.style.width = nextW + "px";
+      glider.style.transform = `translate3d(${nextX}px, 0, 0) scaleX(1)`;
+
+      if (Math.abs(fromX - nextX) < 0.5 && Math.abs(fromW - nextW) < 0.5) {
+        gliderMeta[key] = { x: nextX, w: nextW, anim: null };
+        return;
+      }
+
+      const scaleFrom = nextW > 0 ? (fromW / nextW) : 1;
+      const anim = glider.animate(
+        [
+          { transform: `translate3d(${fromX}px, 0, 0) scaleX(${scaleFrom})` },
+          { transform: `translate3d(${nextX}px, 0, 0) scaleX(1)` }
+        ],
+        {
+          duration: 340,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+        }
+      );
+
+      gliderMeta[key] = { x: nextX, w: nextW, anim };
+    }
+
+    function updateAllGliders() {
+      moveGlider(EL.periodsBar, EL.periodGlider, "periods");
+      moveGlider(EL.tabsBar, EL.subjGlider, "subjects");
+    }
+
+    window.addEventListener("resize", updateAllGliders, { passive: true });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateAllGliders);
+    }
+
+    /* Карточка ауысқандағы GPU-сырғу анимациясы */
+    function animateCardSlide(el, direction = 0) {
+      if (!el || !el.animate) return;
+      const offsetX = direction === 0 ? 0 : direction * 10;
+      const offsetY = direction === 0 ? 5 : 0;
+      el.animate(
+        [
+          { opacity: 0.5, transform: `translate3d(${offsetX}px, ${offsetY}px, 0) scale(0.994)` },
+          { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }
+        ],
+        {
+          duration: 300,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+        }
+      );
+    }
 
     function saveData() {
       try {
@@ -729,7 +1138,6 @@
           }
         }
 
-        // Алдыңғы нұсқадағы деректерді жоғалтпай көшіру
         const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
         if (legacyRaw) {
           const legacy = JSON.parse(legacyRaw);
@@ -871,111 +1279,157 @@
         sumCredits,
         counted,
         totalSubjects: period.subjects.length,
+        gpaNum: sumCredits > 0 ? (sumPoints / sumCredits) : null,
         gpa: sumCredits > 0 ? (sumPoints / sumCredits).toFixed(2) : "—"
       };
     }
 
-    function renderPeriodsBar() {
-      const bar = document.getElementById("periodsBar");
-      bar.innerHTML = "";
+    function renderPeriodsBar(newIndex = -1) {
+      const bar = EL.periodsBar;
+      let addBtn = bar.querySelector(".period-add");
+      if (!addBtn) {
+        addBtn = document.createElement("button");
+        addBtn.className = "period-add";
+        addBtn.textContent = "+ Период";
+        addBtn.onclick = addPeriod;
+        bar.appendChild(addBtn);
+      }
+
+      const existingBtns = Array.from(bar.querySelectorAll(".period-tab"));
+      while (existingBtns.length > state.periods.length) {
+        existingBtns.pop().remove();
+      }
 
       state.periods.forEach((p, i) => {
         const title = p.name.trim() || ((i + 1) + "-период");
         const pStats = calcPeriodGpa(p);
-        const btn = document.createElement("button");
-        btn.className = "period-tab" + (i === state.activePeriodIndex ? " active" : "");
-        btn.textContent = pStats.gpa !== "—" ? `${title} · ${pStats.gpa}` : title;
+        const label = pStats.gpa !== "—" ? `${title} · ${pStats.gpa}` : title;
+
+        let btn = existingBtns[i];
+        if (!btn) {
+          btn = document.createElement("button");
+          btn.className = "period-tab" + (i === newIndex ? " is-new" : "");
+          bar.insertBefore(btn, addBtn);
+        }
+        if (btn.textContent !== label) btn.textContent = label;
+        btn.classList.toggle("active", i === state.activePeriodIndex);
         btn.onclick = () => selectPeriod(i);
-        bar.appendChild(btn);
       });
 
-      const addBtn = document.createElement("button");
-      addBtn.className = "period-add";
-      addBtn.textContent = "+ Период";
-      addBtn.onclick = addPeriod;
-      bar.appendChild(addBtn);
-
-      const activeBtn = bar.querySelector(".period-tab.active");
-      if (activeBtn) activeBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      requestAnimationFrame(() => {
+        moveGlider(bar, EL.periodGlider, "periods");
+        const activeBtn = bar.querySelector(".period-tab.active");
+        if (activeBtn) {
+          activeBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }
+      });
     }
 
-    function renderSubjectsBar() {
+    function renderSubjectsBar(newIndex = -1) {
       const period = getCurrentPeriod();
-      const bar = document.getElementById("tabsBar");
-      bar.innerHTML = "";
+      const bar = EL.tabsBar;
+      let addBtn = bar.querySelector(".tab-add");
+      if (!addBtn) {
+        addBtn = document.createElement("button");
+        addBtn.className = "tab-add";
+        addBtn.textContent = "+ Пән қосу";
+        addBtn.onclick = () => addSubject(true);
+        bar.appendChild(addBtn);
+      }
+
+      const existingBtns = Array.from(bar.querySelectorAll(".tab-btn"));
+      while (existingBtns.length > period.subjects.length) {
+        existingBtns.pop().remove();
+      }
 
       period.subjects.forEach((s, i) => {
         const name = s.name.trim() || ("Пән " + (i + 1));
         const res = evaluateSubject(s);
-        const btn = document.createElement("button");
-        btn.className = "tab-btn" + (i === period.activeSubjectIndex ? " active" : "");
-        btn.textContent = res.letter !== "—" ? `${name} · ${res.letter}` : name;
+        const label = res.letter !== "—" ? `${name} · ${res.letter}` : name;
+
+        let btn = existingBtns[i];
+        if (!btn) {
+          btn = document.createElement("button");
+          btn.className = "tab-btn" + (i === newIndex ? " is-new" : "");
+          bar.insertBefore(btn, addBtn);
+        }
+        if (btn.textContent !== label) btn.textContent = label;
+        btn.classList.toggle("active", i === period.activeSubjectIndex);
         btn.onclick = () => selectSubject(i);
-        bar.appendChild(btn);
       });
 
-      const addBtn = document.createElement("button");
-      addBtn.className = "tab-add";
-      addBtn.textContent = "+ Пән қосу";
-      addBtn.onclick = () => addSubject(true);
-      bar.appendChild(addBtn);
-
-      const activeTab = bar.querySelector(".tab-btn.active");
-      if (activeTab) activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      requestAnimationFrame(() => {
+        moveGlider(bar, EL.subjGlider, "subjects");
+        const activeTab = bar.querySelector(".tab-btn.active");
+        if (activeTab) {
+          activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }
+      });
     }
 
     function populateForm() {
       const period = getCurrentPeriod();
       const subj = getCurrentSubject();
 
-      const periodInput = document.getElementById("periodNameInput");
-      periodInput.value = period.name;
-      periodInput.placeholder = (state.activePeriodIndex + 1) + "-период";
-      document.getElementById("removePeriodBtn").style.display = state.periods.length > 1 ? "block" : "none";
+      EL.periodNameInput.value = period.name;
+      EL.periodNameInput.placeholder = (state.activePeriodIndex + 1) + "-период";
+      EL.removePeriodBtn.style.display = state.periods.length > 1 ? "block" : "none";
 
-      const subjNameInput = document.getElementById("subjName");
-      subjNameInput.value = subj.name;
-      subjNameInput.placeholder = "Пән " + (period.activeSubjectIndex + 1);
-      document.getElementById("subjCredit").value = subj.credit;
-      document.getElementById("subjRk1").value = subj.rk1;
-      document.getElementById("subjRk2").value = subj.rk2;
-      document.getElementById("subjExam").value = subj.exam;
-      document.getElementById("subjTarget").value = subj.target;
-      document.getElementById("removeSubjBtn").style.display = period.subjects.length > 1 ? "block" : "none";
+      EL.subjName.value = subj.name;
+      EL.subjName.placeholder = "Пән " + (period.activeSubjectIndex + 1);
+      EL.subjCredit.value = subj.credit;
+      EL.subjRk1.value = subj.rk1;
+      EL.subjRk2.value = subj.rk2;
+      EL.subjExam.value = subj.exam;
+      EL.subjTarget.value = subj.target;
+      EL.removeSubjBtn.style.display = period.subjects.length > 1 ? "block" : "none";
     }
 
-    function updateCalculations() {
+    let lastBadgeLetter = "—";
+
+    function updateCalculations(newPeriodIdx = -1, newSubjIdx = -1) {
       const subj = getCurrentSubject();
       const res = evaluateSubject(subj);
 
-      document.getElementById("rk1Part").textContent = "Үлесі: " + res.rk1Weighted.toFixed(1);
-      document.getElementById("rk2Part").textContent = "Үлесі: " + res.rk2Weighted.toFixed(1);
-      document.getElementById("examPart").textContent = "Үлесі: " + res.examWeighted.toFixed(1);
+      animateNumber("rk1Part", res.rk1Weighted, 1, "Үлесі: ");
+      animateNumber("rk2Part", res.rk2Weighted, 1, "Үлесі: ");
+      animateNumber("examPart", res.examWeighted, 1, "Үлесі: ");
+      animateNumber("totalScore", res.anyInput ? res.total : 0, 1);
 
-      document.getElementById("totalScore").textContent = res.anyInput ? res.total.toFixed(1) : "0.0";
+      EL.resultGlowBox.classList.toggle("is-fail", res.fail);
 
-      const badge = document.getElementById("gradeBadge");
-      badge.textContent = res.letter;
+      const badge = EL.gradeBadge;
+      if (badge.textContent !== res.letter) {
+        badge.textContent = res.letter;
+        if (res.letter !== "—" && res.letter !== lastBadgeLetter && badge.animate) {
+          badge.animate(
+            [
+              { transform: "translate3d(0, 0, 0) scale(0.86)" },
+              { transform: "translate3d(0, 0, 0) scale(1.08)" },
+              { transform: "translate3d(0, 0, 0) scale(1)" }
+            ],
+            { duration: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+          );
+        }
+        lastBadgeLetter = res.letter;
+      }
       badge.classList.toggle("fail", res.fail);
 
-      const warningBox = document.getElementById("warningBox");
       if (res.warning) {
-        warningBox.style.display = "block";
-        warningBox.textContent = res.warning;
+        EL.warningBox.textContent = res.warning;
+        EL.warningWrap.classList.add("show");
       } else {
-        warningBox.style.display = "none";
+        EL.warningWrap.classList.remove("show");
       }
 
-      document.getElementById("rdAvg").textContent = res.rdOK ? res.semAvg.toFixed(1) + " балл" : "—";
-      document.getElementById("needTarget").textContent = res.need;
+      EL.rdAvg.textContent = res.rdOK ? res.semAvg.toFixed(1) + " балл" : "—";
+      EL.needTarget.textContent = res.need;
 
-      // Период GPA
       const periodStats = calcPeriodGpa(getCurrentPeriod());
-      document.getElementById("periodGpaValue").textContent = periodStats.gpa;
-      document.getElementById("periodGpaMeta").textContent =
+      animateNumber("periodGpaValue", periodStats.gpaNum, 2, "", "—");
+      EL.periodGpaMeta.textContent =
         `${periodStats.counted}/${periodStats.totalSubjects} пән · ${periodStats.sumCredits} кр`;
 
-      // Барлық периодтар бойынша Жалпы GPA (CGPA)
       let allPoints = 0, allCredits = 0, allCounted = 0, allSubjects = 0;
       state.periods.forEach(p => {
         const ps = calcPeriodGpa(p);
@@ -985,45 +1439,52 @@
         allSubjects += ps.totalSubjects;
       });
 
-      document.getElementById("totalGpaValue").textContent =
-        allCredits > 0 ? (allPoints / allCredits).toFixed(2) : "—";
-      document.getElementById("totalGpaMeta").textContent =
+      const totalGpaNum = allCredits > 0 ? (allPoints / allCredits) : null;
+      animateNumber("totalGpaValue", totalGpaNum, 2, "", "—");
+      EL.totalGpaMeta.textContent =
         `${allCounted}/${allSubjects} пән · ${allCredits} кр`;
 
-      renderPeriodsBar();
-      renderSubjectsBar();
+      renderPeriodsBar(newPeriodIdx);
+      renderSubjectsBar(newSubjIdx);
     }
 
-    function renderAll() {
+    function renderAll(newPeriodIdx = -1, newSubjIdx = -1) {
       populateForm();
-      updateCalculations();
+      updateCalculations(newPeriodIdx, newSubjIdx);
     }
 
     function handleFieldInput() {
       const subj = getCurrentSubject();
-      subj.name = document.getElementById("subjName").value;
-      subj.credit = document.getElementById("subjCredit").value;
-      subj.rk1 = document.getElementById("subjRk1").value;
-      subj.rk2 = document.getElementById("subjRk2").value;
-      subj.exam = document.getElementById("subjExam").value;
-      subj.target = document.getElementById("subjTarget").value;
+      subj.name = EL.subjName.value;
+      subj.credit = EL.subjCredit.value;
+      subj.rk1 = EL.subjRk1.value;
+      subj.rk2 = EL.subjRk2.value;
+      subj.exam = EL.subjExam.value;
+      subj.target = EL.subjTarget.value;
 
       updateCalculations();
       saveData();
     }
 
     function selectPeriod(index) {
+      if (index === state.activePeriodIndex) return;
+      const dir = index > state.activePeriodIndex ? 1 : -1;
       state.activePeriodIndex = Math.max(0, Math.min(index, state.periods.length - 1));
       renderAll();
+      animateCardSlide(EL.periodHeader, dir);
+      animateCardSlide(EL.subjectCard, dir);
       saveData();
     }
 
     function addPeriod() {
       state.periods.push(createEmptyPeriod());
-      state.activePeriodIndex = state.periods.length - 1;
-      renderAll();
+      const newIdx = state.periods.length - 1;
+      state.activePeriodIndex = newIdx;
+      renderAll(newIdx, 0);
+      animateCardSlide(EL.periodHeader, 1);
+      animateCardSlide(EL.subjectCard, 1);
       saveData();
-      document.getElementById("periodNameInput").focus();
+      EL.periodNameInput.focus();
     }
 
     function renameCurrentPeriod(val) {
@@ -1039,23 +1500,30 @@
       state.periods.splice(state.activePeriodIndex, 1);
       state.activePeriodIndex = Math.min(state.activePeriodIndex, state.periods.length - 1);
       renderAll();
+      animateCardSlide(EL.periodHeader, -1);
+      animateCardSlide(EL.subjectCard, -1);
       saveData();
     }
 
     function selectSubject(index) {
       const period = getCurrentPeriod();
+      if (index === period.activeSubjectIndex) return;
+      const dir = index > period.activeSubjectIndex ? 1 : -1;
       period.activeSubjectIndex = Math.max(0, Math.min(index, period.subjects.length - 1));
       renderAll();
+      animateCardSlide(EL.subjectCard, dir);
       saveData();
     }
 
     function addSubject(focus) {
       const period = getCurrentPeriod();
       period.subjects.push(createEmptySubject());
-      period.activeSubjectIndex = period.subjects.length - 1;
-      renderAll();
+      const newIdx = period.subjects.length - 1;
+      period.activeSubjectIndex = newIdx;
+      renderAll(-1, newIdx);
+      animateCardSlide(EL.subjectCard, 1);
       saveData();
-      if (focus) document.getElementById("subjName").focus();
+      if (focus) EL.subjName.focus();
     }
 
     function removeCurrentSubject() {
@@ -1064,6 +1532,7 @@
       period.subjects.splice(period.activeSubjectIndex, 1);
       period.activeSubjectIndex = Math.min(period.activeSubjectIndex, period.subjects.length - 1);
       renderAll();
+      animateCardSlide(EL.subjectCard, -1);
       saveData();
     }
 
@@ -1078,7 +1547,8 @@
         activePeriodIndex: 0,
         periods: [createEmptyPeriod()]
       };
-      renderAll();
+      renderAll(0, 0);
+      animateCardSlide(EL.subjectCard, 0);
     }
 
     loadData();
