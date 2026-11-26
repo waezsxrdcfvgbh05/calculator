@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рейтинг калькуляторы (РК1, РК2)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #f3f4f6;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+
+    .rk-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .rk-row .input-group {
+      flex: 1;
+    }
+
+    .input-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    label span {
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: #2563eb;
+    }
+
+    .result-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .result-title {
+      font-size: 13px;
+      color: #1e40af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .total-score {
+      font-size: 40px;
+      font-weight: 800;
+      color: #1d4ed8;
+      line-height: 1.1;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: #2563eb;
+      color: #ffffff;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .breakdown {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #dbeafe;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .warning {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .targets {
+      margin-top: 18px;
+      padding: 12px 14px;
+      background: #f9fafb;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .targets p {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+
+    .btn-reset {
+      width: 100%;
+      margin-top: 18px;
+      padding: 11px;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-reset:hover {
+      background: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Рейтинг калькуляторы</h1>
+    <p class="subtitle">Формула: ((РК1 + РК2) ÷ 2 × 0,6) + (Емтихан × 0,4)</p>
+
+    <div class="rk-row">
+      <div class="input-group">
+        <label for="rk1">
+          РК1 (30%)
+          <span id="rk1Part">0.0</span>
+        </label>
+        <input type="number" id="rk1" min="0" max="100" step="0.1" placeholder="Мысалы: 80" oninput="calculate()">
+      </div>
+
+      <div class="input-group">
+        <label for="rk2">
+          РК2 (30%)
+          <span id="rk2Part">0.0</span>
+        </label>
+        <input type="number" id="rk2" min="0" max="100" step="0.1" placeholder="Мысалы: 85" oninput="calculate()">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="exam">
+        Емтихан баллы (40%)
+        <span id="examPart">Үлесі: 0.0</span>
+      </label>
+      <input type="number" id="exam" min="0" max="100" step="0.1" placeholder="Мысалы: 75" oninput="calculate()">
+    </div>
+
+    <div class="result-box">
+      <div class="result-title">Қорытынды рейтинг</div>
+      <div class="total-score" id="totalScore">0.0</div>
+      <div class="grade-badge" id="gradeBadge">Баға: —</div>
+
+      <div class="breakdown">
+        <span>РД (Семестр 60%): <strong id="semVal">0.0</strong></span>
+        <span>Емтихан (40%): <strong id="examVal">0.0</strong></span>
+      </div>
+
+      <div class="warning" id="warningBox"></div>
+    </div>
+
+    <div class="targets">
+      <p><span>Рейтинг допуска (РД орташа):</span> <strong id="rdAvg">—</strong></p>
+      <p><span>70 балл (стипендия) үшін емтихан:</span> <strong id="need70">—</strong></p>
+      <p><span>90 балл (A-) үшін емтихан:</span> <strong id="need90">—</strong></p>
+    </div>
+
+    <button class="btn-reset" onclick="resetForm()">Тазарту</button>
+  </div>
+
+  <script>
+    function getLetterGrade(score, exam) {
+      if (exam < 50) return { letter: "F (0.0)", fail: true };
+      const rounded = Math.round(score);
+      if (rounded >= 95) return { letter: "A (4.0)", fail: false };
+      if (rounded >= 90) return { letter: "A- (3.67)", fail: false };
+      if (rounded >= 85) return { letter: "B+ (3.33)", fail: false };
+      if (rounded >= 80) return { letter: "B (3.0)", fail: false };
+      if (rounded >= 75) return { letter: "B- (2.67)", fail: false };
+      if (rounded >= 70) return { letter: "C+ (2.33)", fail: false };
+      if (rounded >= 65) return { letter: "C (2.0)", fail: false };
+      if (rounded >= 60) return { letter: "C- (1.67)", fail: false };
+      if (rounded >= 55) return { letter: "D+ (1.33)", fail: false };
+      if (rounded >= 50) return { letter: "D (1.0)", fail: false };
+      return { letter: "F (0.0)", fail: true };
+    }
+
+    function calcNeededExam(semAvg, target) {
+      let needed = (target - semAvg * 0.6) / 0.4;
+      if (needed <= 50) return "кемінде 50 балл";
+      if (needed > 100) return "мүмкін емес (>100)";
+      return Math.ceil(needed) + " балл";
+    }
+
+    function calculate() {
+      const rk1Input = document.getElementById("rk1").value;
+      const rk2Input = document.getElementById("rk2").value;
+      const examInput = document.getElementById("exam").value;
+      const warningBox = document.getElementById("warningBox");
+
+      let rk1 = parseFloat(rk1Input) || 0;
+      let rk2 = parseFloat(rk2Input) || 0;
+      let exam = parseFloat(examInput) || 0;
+
+      const semAvg = (rk1 + rk2) / 2;
+      const rk1Weighted = rk1 * 0.3;
+      const rk2Weighted = rk2 * 0.3;
+      const semWeighted = semAvg * 0.6;
+      const examWeighted = exam * 0.4;
+      const total = semWeighted + examWeighted;
+
+      if (rk1 < 0 || rk1 > 100 || rk2 < 0 || rk2 > 100 || exam < 0 || exam > 100) {
+        warningBox.style.display = "block";
+        warningBox.textContent = "Ескерту: Барлық баллдар 0 мен 100 аралығында болуы керек.";
+      } else if (rk1Input !== "" && rk2Input !== "" && semAvg < 50) {
+        warningBox.style.display = "block";
+        warningBox.textContent = "Рейтинг допуска (РК1 + РК2 орташасы) 50-ден төмен — емтиханға жіберілмейді.";
+      } else if (examInput !== "" && exam < 50) {
+        warningBox.style.display = "block";
+        warningBox.textContent = "Емтихан баллы 50-ден төмен болғандықтан, қорытынды баға «F» қойылады.";
+      } else {
+        warningBox.style.display = "none";
+      }
+
+      document.getElementById("rk1Part").textContent = "Үлесі: " + rk1Weighted.toFixed(1);
+      document.getElementById("rk2Part").textContent = "Үлесі: " + rk2Weighted.toFixed(1);
+      document.getElementById("examPart").textContent = "Үлесі: " + examWeighted.toFixed(1);
+
+      document.getElementById("semVal").textContent = semWeighted.toFixed(1);
+      document.getElementById("examVal").textContent = examWeighted.toFixed(1);
+      document.getElementById("totalScore").textContent = total.toFixed(1);
+
+      if (rk1Input === "" && rk2Input === "" && examInput === "") {
+        document.getElementById("gradeBadge").textContent = "Баға: —";
+      } else {
+        const grade = getLetterGrade(total, examInput === "" ? 50 : exam);
+        document.getElementById("gradeBadge").textContent = "Баға: " + grade.letter;
+      }
+
+      if ((rk1Input !== "" || rk2Input !== "") && rk1 >= 0 && rk1 <= 100 && rk2 >= 0 && rk2 <= 100) {
+        document.getElementById("rdAvg").textContent = semAvg.toFixed(1) + " балл";
+        document.getElementById("need70").textContent = calcNeededExam(semAvg, 70);
+        document.getElementById("need90").textContent = calcNeededExam(semAvg, 90);
+      } else {
+        document.getElementById("rdAvg").textContent = "—";
+        document.getElementById("need70").textContent = "—";
+        document.getElementById("need90").textContent = "—";
+      }
+    }
+
+    function resetForm() {
+      document.getElementById("rk1").value = "";
+      document.getElementById("rk2").value = "";
+      document.getElementById("exam").value = "";
+      calculate();
+    }
+  </script>
+
+</body>
+</html>
