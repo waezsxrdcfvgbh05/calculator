@@ -454,6 +454,8 @@
   </div>
 
   <script>
+    const STORAGE_KEY = "rating_calculator_v1";
+
     const GRADE_POINTS = {
       "A": 4.0, "A-": 3.67, "B+": 3.33, "B": 3.0, "B-": 2.67,
       "C+": 2.33, "C": 2.0, "C-": 1.67, "D+": 1.33, "D": 1.0, "F": 0
@@ -461,6 +463,56 @@
 
     let uid = 0;
     let activeIndex = 0;
+
+    function saveData() {
+      try {
+        const subjects = Array.from(document.querySelectorAll("#subjects .subject")).map(block => ({
+          name: block.querySelector(".name-input").value,
+          credit: block.querySelector(".credit").value,
+          rk1: block.querySelector(".rk1").value,
+          rk2: block.querySelector(".rk2").value,
+          exam: block.querySelector(".exam").value,
+          target: block.querySelector(".target").value
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeIndex, subjects }));
+      } catch (e) {
+        // Жеке (incognito) режимде сақтау шектелсе, қате шығармайды
+      }
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data || !Array.isArray(data.subjects) || data.subjects.length === 0) return false;
+
+        const container = document.getElementById("subjects");
+        container.innerHTML = "";
+
+        data.subjects.forEach(item => {
+          uid++;
+          const block = document.createElement("div");
+          block.className = "subject";
+          block.innerHTML = subjectHTML(uid);
+          block.querySelector(".name-input").value = item.name ?? "";
+          block.querySelector(".credit").value = item.credit ?? "3";
+          block.querySelector(".rk1").value = item.rk1 ?? "";
+          block.querySelector(".rk2").value = item.rk2 ?? "";
+          block.querySelector(".exam").value = item.exam ?? "";
+          block.querySelector(".target").value = item.target ?? "";
+          container.appendChild(block);
+        });
+
+        renumber();
+        activeIndex = typeof data.activeIndex === "number" ? data.activeIndex : 0;
+        setActive(activeIndex, false);
+        calculate(false);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
 
     function getLetterGrade(score, exam) {
       if (exam < 50) return { letter: "F", fail: true };
@@ -488,7 +540,7 @@
     function subjectHTML(id) {
       return `
         <div class="subj-head">
-          <input class="name-input" type="text" maxlength="40" aria-label="Пән атауы" oninput="renderTabs()">
+          <input class="name-input" type="text" maxlength="40" aria-label="Пән атауы" oninput="renderTabs(); saveData();">
           <div class="credit-box">
             <label for="cr_${id}">Кредит</label>
             <input class="credit" id="cr_${id}" type="number" inputmode="decimal" min="1" max="20" step="any" value="3" oninput="calculate()">
@@ -544,12 +596,13 @@
       `;
     }
 
-    function setActive(index) {
+    function setActive(index, persist = true) {
       const blocks = document.querySelectorAll("#subjects .subject");
       if (!blocks.length) return;
       activeIndex = Math.max(0, Math.min(index, blocks.length - 1));
       blocks.forEach((b, i) => b.classList.toggle("active", i === activeIndex));
       renderTabs();
+      if (persist) saveData();
     }
 
     function renderTabs() {
@@ -591,8 +644,8 @@
       const container = document.getElementById("subjects");
       container.appendChild(block);
       renumber();
-      setActive(container.children.length - 1);
-      calculate();
+      setActive(container.children.length - 1, false);
+      calculate(true);
       if (focus) block.querySelector(".name-input").focus();
     }
 
@@ -601,8 +654,8 @@
       if (blocks.length <= 1) return;
       blocks[activeIndex].remove();
       renumber();
-      setActive(Math.min(activeIndex, blocks.length - 2));
-      calculate();
+      setActive(Math.min(activeIndex, blocks.length - 2), false);
+      calculate(true);
     }
 
     function calcSubject(block) {
@@ -683,7 +736,7 @@
       return { points, credit: credit > 0 ? credit : 0 };
     }
 
-    function calculate() {
+    function calculate(persist = true) {
       const blocks = document.querySelectorAll("#subjects .subject");
       let sumPoints = 0, sumCredits = 0, counted = 0;
 
@@ -702,17 +755,21 @@
         `${counted} / ${blocks.length} пән · ${sumCredits} кр`;
 
       renderTabs();
+      if (persist) saveData();
     }
 
     function resetAll() {
       const count = document.querySelectorAll("#subjects .subject").length;
       if (count > 1 && !confirm("Барлық пәндер өшіріліп, деректер тазаланады. Жалғастырасың ба?")) return;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
       document.getElementById("subjects").innerHTML = "";
       activeIndex = 0;
       addSubject(false);
     }
 
-    addSubject(false);
+    if (!loadData()) {
+      addSubject(false);
+    }
   </script>
 
 </body>
