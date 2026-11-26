@@ -2,323 +2,732 @@
 <html lang="kk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Рейтинг калькуляторы (РК1, РК2)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Рейтинг калькуляторы</title>
   <style>
+    :root {
+      --primary: #34d399;
+      --bg: #121816;
+      --card-border: rgba(255, 255, 255, 0.09);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100dvh;
+      overflow: hidden;
     }
 
     body {
-      background-color: #f3f4f6;
-      color: #1f2937;
+      background: radial-gradient(circle at 50% 0%, #1e3a34 0%, #111a17 60%, #080c0a 100%);
+      color: var(--text);
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      padding: 20px;
+      padding: 10px;
     }
 
     .card {
-      background: #ffffff;
+      background: rgba(20, 30, 26, 0.78);
       width: 100%;
-      max-width: 440px;
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    h1 {
-      font-size: 22px;
-      text-align: center;
-      margin-bottom: 6px;
-      color: #111827;
-    }
-
-    .subtitle {
-      text-align: center;
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 24px;
-    }
-
-    .rk-row {
+      max-width: 420px;
+      max-height: 100%;
+      overflow-y: auto;
+      scrollbar-width: none;
+      padding: 16px;
+      border-radius: 26px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .rk-row .input-group {
-      flex: 1;
+    .card::-webkit-scrollbar {
+      display: none;
     }
 
-    .input-group {
-      margin-bottom: 18px;
-    }
-
-    label {
+    /* Header + Жалпы GPA бір қатарда */
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: #374151;
+      gap: 10px;
     }
 
-    label span {
-      color: #2563eb;
+    h1 {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .gpa-pill {
+      background: radial-gradient(100% 100% at 50% 0%, rgba(52, 211, 153, 0.2) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      border-radius: 16px;
+      padding: 6px 12px;
+      text-align: right;
+      flex: none;
+    }
+
+    .gpa-pill-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .gpa-pill-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #6ee7b7;
+      text-transform: uppercase;
+    }
+
+    .gpa-pill-val {
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .gpa-meta {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Пән ауыстырғыш табтар */
+    .tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 1px;
+    }
+
+    .tabs-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex: none;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 12px;
+      padding: 6px 11px;
       font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: rgba(52, 211, 153, 0.16);
+      border-color: rgba(52, 211, 153, 0.5);
+      color: #fff;
+    }
+
+    .tab-add {
+      flex: none;
+      background: transparent;
+      border: 1px dashed rgba(52, 211, 153, 0.5);
+      color: var(--primary);
+      border-radius: 12px;
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tab-add:active {
+      background: rgba(52, 211, 153, 0.12);
+    }
+
+    /* Subject block */
+    .subject {
+      display: none;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 12px;
+    }
+
+    .subject.active {
+      display: block;
+    }
+
+    .subj-head {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .name-input {
+      flex: 1;
+      min-width: 0;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 13px;
+      padding: 0 12px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .name-input:focus {
+      border-color: var(--primary);
+    }
+
+    .credit-box {
+      flex: none;
+      width: 78px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 13px;
+      padding: 4px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .credit-box:focus-within {
+      border-color: var(--primary);
+    }
+
+    .credit-box label {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .credit-box input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .remove-btn {
+      width: 36px;
+      height: 40px;
+      flex: none;
+      border-radius: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .remove-btn:active {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .subject:only-child .remove-btn {
+      display: none;
+    }
+
+    /* 2x2 Inputs Grid */
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .input-box {
+      min-width: 0;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--card-border);
+      padding: 8px 11px;
+      border-radius: 15px;
+      transition: border-color 0.2s;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.18);
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 3px;
+    }
+
+    .input-box label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .part-val {
+      font-size: 10.5px;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .input-box input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 17px;
       font-weight: 700;
     }
 
     input[type="number"] {
-      width: 100%;
-      padding: 12px 14px;
-      font-size: 16px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 10px;
-      outline: none;
-      transition: border-color 0.2s;
+      -moz-appearance: textfield;
+      appearance: textfield;
     }
 
-    input[type="number"]:focus {
-      border-color: #2563eb;
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
-    .result-box {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-top: 10px;
+    /* Result + Metrics біріктірілген ықшам блок */
+    .result-glow-box {
+      background: radial-gradient(100% 100% at 50% 0%, rgba(52, 211, 153, 0.16) 0%, rgba(0, 0, 0, 0) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: 18px;
+      padding: 12px;
     }
 
-    .result-title {
-      font-size: 13px;
-      color: #1e40af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-
-    .total-score {
-      font-size: 40px;
-      font-weight: 800;
-      color: #1d4ed8;
-      line-height: 1.1;
-    }
-
-    .grade-badge {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 4px 12px;
-      background: #2563eb;
-      color: #ffffff;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .breakdown {
+    .result-top {
       display: flex;
       justify-content: space-between;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid #dbeafe;
-      font-size: 13px;
-      color: #374151;
+      align-items: center;
+    }
+
+    .res-label {
+      font-size: 10.5px;
+      color: #6ee7b7;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+    }
+
+    .score-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .final-score {
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 16px rgba(52, 211, 153, 0.5);
+      line-height: 1;
+    }
+
+    .badge-grade {
+      background: #10b981;
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge-grade.fail {
+      background: #ef4444;
+      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .targets-inline {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+    }
+
+    .metric-item span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 10px;
+      margin-bottom: 1px;
+    }
+
+    .metric-item strong {
+      color: #fff;
+      font-size: 12px;
     }
 
     .warning {
       display: none;
-      margin-top: 14px;
-      padding: 10px 12px;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #b91c1c;
-      border-radius: 8px;
-      font-size: 13px;
-      text-align: left;
-    }
-
-    .targets {
-      margin-top: 18px;
-      padding: 12px 14px;
-      background: #f9fafb;
+      padding: 7px 10px;
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.25);
       border-radius: 10px;
-      font-size: 13px;
-      color: #4b5563;
+      color: #fca5a5;
+      font-size: 10.5px;
+      margin-top: 9px;
+      text-align: center;
     }
 
-    .targets p {
-      display: flex;
-      justify-content: space-between;
-      margin: 4px 0;
-    }
-
-    .btn-reset {
+    /* Bottom Reset Button */
+    .btn-action {
       width: 100%;
-      margin-top: 18px;
-      padding: 11px;
-      background: #f3f4f6;
-      color: #374151;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
     }
 
-    .btn-reset:hover {
-      background: #e5e7eb;
+    .btn-action:active {
+      background: rgba(52, 211, 153, 0.12);
+      border-color: var(--primary);
     }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h1>Рейтинг калькуляторы</h1>
-    <p class="subtitle">Формула: ((РК1 + РК2) ÷ 2 × 0,6) + (Емтихан × 0,4)</p>
-
-    <div class="rk-row">
-      <div class="input-group">
-        <label for="rk1">
-          РК1 (30%)
-          <span id="rk1Part">0.0</span>
-        </label>
-        <input type="number" id="rk1" min="0" max="100" step="0.1" placeholder="Мысалы: 80" oninput="calculate()">
+    <!-- Жоғарғы панель: Тақырып + Жалпы GPA -->
+    <div class="top-bar">
+      <div>
+        <h1>Рейтинг калькуляторы</h1>
+        <div class="subtitle">((РК1 + РК2) ÷ 2 × 0,6) + (Емт × 0,4)</div>
       </div>
-
-      <div class="input-group">
-        <label for="rk2">
-          РК2 (30%)
-          <span id="rk2Part">0.0</span>
-        </label>
-        <input type="number" id="rk2" min="0" max="100" step="0.1" placeholder="Мысалы: 85" oninput="calculate()">
+      <div class="gpa-pill">
+        <div class="gpa-pill-top">
+          <span class="gpa-pill-label">GPA</span>
+          <span class="gpa-pill-val" id="gpaValue">—</span>
+        </div>
+        <div class="gpa-meta" id="gpaMeta">0/1 пән · 0 кр</div>
       </div>
     </div>
 
-    <div class="input-group">
-      <label for="exam">
-        Емтихан баллы (40%)
-        <span id="examPart">Үлесі: 0.0</span>
-      </label>
-      <input type="number" id="exam" min="0" max="100" step="0.1" placeholder="Мысалы: 75" oninput="calculate()">
-    </div>
+    <!-- Пәндер табтары -->
+    <div class="tabs-bar" id="tabsBar"></div>
 
-    <div class="result-box">
-      <div class="result-title">Қорытынды рейтинг</div>
-      <div class="total-score" id="totalScore">0.0</div>
-      <div class="grade-badge" id="gradeBadge">Баға: —</div>
+    <!-- Белсенді пән блогы -->
+    <div id="subjects"></div>
 
-      <div class="breakdown">
-        <span>РД (Семестр 60%): <strong id="semVal">0.0</strong></span>
-        <span>Емтихан (40%): <strong id="examVal">0.0</strong></span>
-      </div>
-
-      <div class="warning" id="warningBox"></div>
-    </div>
-
-    <div class="targets">
-      <p><span>Рейтинг допуска (РД орташа):</span> <strong id="rdAvg">—</strong></p>
-      <p><span>70 балл (стипендия) үшін емтихан:</span> <strong id="need70">—</strong></p>
-      <p><span>90 балл (A-) үшін емтихан:</span> <strong id="need90">—</strong></p>
-    </div>
-
-    <button class="btn-reset" onclick="resetForm()">Тазарту</button>
+    <!-- Тазарту -->
+    <button class="btn-action" onclick="resetAll()">Тазарту</button>
   </div>
 
   <script>
+    const GRADE_POINTS = {
+      "A": 4.0, "A-": 3.67, "B+": 3.33, "B": 3.0, "B-": 2.67,
+      "C+": 2.33, "C": 2.0, "C-": 1.67, "D+": 1.33, "D": 1.0, "F": 0
+    };
+
+    let uid = 0;
+    let activeIndex = 0;
+
     function getLetterGrade(score, exam) {
-      if (exam < 50) return { letter: "F (0.0)", fail: true };
-      const rounded = Math.round(score);
-      if (rounded >= 95) return { letter: "A (4.0)", fail: false };
-      if (rounded >= 90) return { letter: "A- (3.67)", fail: false };
-      if (rounded >= 85) return { letter: "B+ (3.33)", fail: false };
-      if (rounded >= 80) return { letter: "B (3.0)", fail: false };
-      if (rounded >= 75) return { letter: "B- (2.67)", fail: false };
-      if (rounded >= 70) return { letter: "C+ (2.33)", fail: false };
-      if (rounded >= 65) return { letter: "C (2.0)", fail: false };
-      if (rounded >= 60) return { letter: "C- (1.67)", fail: false };
-      if (rounded >= 55) return { letter: "D+ (1.33)", fail: false };
-      if (rounded >= 50) return { letter: "D (1.0)", fail: false };
-      return { letter: "F (0.0)", fail: true };
+      if (exam < 50) return { letter: "F", fail: true };
+      const rounded = Math.round(score + 1e-9);
+      if (rounded >= 95) return { letter: "A", fail: false };
+      if (rounded >= 90) return { letter: "A-", fail: false };
+      if (rounded >= 85) return { letter: "B+", fail: false };
+      if (rounded >= 80) return { letter: "B", fail: false };
+      if (rounded >= 75) return { letter: "B-", fail: false };
+      if (rounded >= 70) return { letter: "C+", fail: false };
+      if (rounded >= 65) return { letter: "C", fail: false };
+      if (rounded >= 60) return { letter: "C-", fail: false };
+      if (rounded >= 55) return { letter: "D+", fail: false };
+      if (rounded >= 50) return { letter: "D", fail: false };
+      return { letter: "F", fail: true };
     }
 
     function calcNeededExam(semAvg, target) {
-      let needed = (target - semAvg * 0.6) / 0.4;
+      const needed = (target - semAvg * 0.6) / 0.4;
       if (needed <= 50) return "кемінде 50 балл";
-      if (needed > 100) return "мүмкін емес (>100)";
-      return Math.ceil(needed) + " балл";
+      if (needed > 100) return "мүмкін емес";
+      return Math.ceil(needed - 1e-9) + " балл";
     }
 
-    function calculate() {
-      const rk1Input = document.getElementById("rk1").value;
-      const rk2Input = document.getElementById("rk2").value;
-      const examInput = document.getElementById("exam").value;
-      const warningBox = document.getElementById("warningBox");
+    function subjectHTML(id) {
+      return `
+        <div class="subj-head">
+          <input class="name-input" type="text" maxlength="40" aria-label="Пән атауы" oninput="renderTabs()">
+          <div class="credit-box">
+            <label for="cr_${id}">Кредит</label>
+            <input class="credit" id="cr_${id}" type="number" inputmode="decimal" min="1" max="20" step="any" value="3" oninput="calculate()">
+          </div>
+          <button class="remove-btn" onclick="removeCurrentSubject()" aria-label="Пәнді өшіру">✕</button>
+        </div>
 
-      let rk1 = parseFloat(rk1Input) || 0;
-      let rk2 = parseFloat(rk2Input) || 0;
-      let exam = parseFloat(examInput) || 0;
+        <div class="grid-2x2">
+          <div class="input-box">
+            <div class="label-row">
+              <label for="rk1_${id}">РК1 (30%)</label>
+              <span class="part-val rk1Part">0.0</span>
+            </div>
+            <input class="rk1" id="rk1_${id}" type="number" inputmode="decimal" min="0" max="100" placeholder="0.0" oninput="calculate()">
+          </div>
+
+          <div class="input-box">
+            <div class="label-row">
+              <label for="rk2_${id}">РК2 (30%)</label>
+              <span class="part-val rk2Part">0.0</span>
+            </div>
+            <input class="rk2" id="rk2_${id}" type="number" inputmode="decimal" min="0" max="100" placeholder="0.0" oninput="calculate()">
+          </div>
+
+          <div class="input-box">
+            <div class="label-row">
+              <label for="ex_${id}">Емтихан (40%)</label>
+              <span class="part-val examPart">0.0</span>
+            </div>
+            <input class="exam" id="ex_${id}" type="number" inputmode="decimal" min="0" max="100" placeholder="0.0" oninput="calculate()">
+          </div>
+
+          <div class="input-box">
+            <div class="label-row">
+              <label for="tg_${id}">Мақсат</label>
+            </div>
+            <input class="target" id="tg_${id}" type="number" inputmode="decimal" min="0" max="100" placeholder="85" oninput="calculate()">
+          </div>
+        </div>
+
+        <div class="result-glow-box">
+          <div class="result-top">
+            <div class="res-label">Қорытынды балл</div>
+            <div class="score-container">
+              <div class="final-score totalScore">0.0</div>
+              <div class="badge-grade gradeBadge">—</div>
+            </div>
+          </div>
+
+          <div class="targets-inline">
+            <div class="metric-item">
+              <span>РД орташа (60%)</span>
+              <strong class="rdAvg">—</strong>
+            </div>
+            <div class="metric-item" style="text-align: right;">
+              <span>Мақсатқа емтихан</span>
+              <strong class="needTarget">—</strong>
+            </div>
+          </div>
+
+          <div class="warning"></div>
+        </div>
+      `;
+    }
+
+    function setActive(index) {
+      const blocks = document.querySelectorAll("#subjects .subject");
+      if (!blocks.length) return;
+      activeIndex = Math.max(0, Math.min(index, blocks.length - 1));
+      blocks.forEach((b, i) => b.classList.toggle("active", i === activeIndex));
+      renderTabs();
+    }
+
+    function renderTabs() {
+      const blocks = document.querySelectorAll("#subjects .subject");
+      const bar = document.getElementById("tabsBar");
+      bar.innerHTML = "";
+
+      blocks.forEach((block, i) => {
+        const name = block.querySelector(".name-input").value.trim() || ("Пән " + (i + 1));
+        const badge = block.querySelector(".gradeBadge").textContent;
+        const btn = document.createElement("button");
+        btn.className = "tab-btn" + (i === activeIndex ? " active" : "");
+        btn.textContent = badge !== "—" ? `${name} · ${badge}` : name;
+        btn.onclick = () => setActive(i);
+        bar.appendChild(btn);
+      });
+
+      const addBtn = document.createElement("button");
+      addBtn.className = "tab-add";
+      addBtn.textContent = "+ Пән";
+      addBtn.onclick = () => addSubject(true);
+      bar.appendChild(addBtn);
+
+      const activeTab = bar.querySelector(".tab-btn.active");
+      if (activeTab) activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+
+    function renumber() {
+      document.querySelectorAll("#subjects .name-input").forEach((el, i) => {
+        el.placeholder = "Пән " + (i + 1);
+      });
+    }
+
+    function addSubject(focus) {
+      uid++;
+      const block = document.createElement("div");
+      block.className = "subject";
+      block.innerHTML = subjectHTML(uid);
+      const container = document.getElementById("subjects");
+      container.appendChild(block);
+      renumber();
+      setActive(container.children.length - 1);
+      calculate();
+      if (focus) block.querySelector(".name-input").focus();
+    }
+
+    function removeCurrentSubject() {
+      const blocks = document.querySelectorAll("#subjects .subject");
+      if (blocks.length <= 1) return;
+      blocks[activeIndex].remove();
+      renumber();
+      setActive(Math.min(activeIndex, blocks.length - 2));
+      calculate();
+    }
+
+    function calcSubject(block) {
+      const q = s => block.querySelector(s);
+      const rk1In = q(".rk1").value;
+      const rk2In = q(".rk2").value;
+      const exIn = q(".exam").value;
+      const tgIn = q(".target").value;
+
+      const rk1 = parseFloat(rk1In) || 0;
+      const rk2 = parseFloat(rk2In) || 0;
+      const exam = parseFloat(exIn) || 0;
+      const target = parseFloat(tgIn);
+      const credit = parseFloat(q(".credit").value);
 
       const semAvg = (rk1 + rk2) / 2;
-      const rk1Weighted = rk1 * 0.3;
-      const rk2Weighted = rk2 * 0.3;
       const semWeighted = semAvg * 0.6;
       const examWeighted = exam * 0.4;
       const total = semWeighted + examWeighted;
 
-      if (rk1 < 0 || rk1 > 100 || rk2 < 0 || rk2 > 100 || exam < 0 || exam > 100) {
+      const invalid = [rk1, rk2, exam].some(v => v < 0 || v > 100);
+      const notAdmitted = !invalid && rk1In !== "" && rk2In !== "" && semAvg < 50;
+      const anyInput = rk1In !== "" || rk2In !== "" || exIn !== "";
+
+      const warningBox = q(".warning");
+      if (invalid) {
         warningBox.style.display = "block";
-        warningBox.textContent = "Ескерту: Барлық баллдар 0 мен 100 аралығында болуы керек.";
-      } else if (rk1Input !== "" && rk2Input !== "" && semAvg < 50) {
+        warningBox.textContent = "Баға 0 мен 100 аралығында болуы керек.";
+      } else if (q(".credit").value === "" || credit <= 0) {
         warningBox.style.display = "block";
-        warningBox.textContent = "Рейтинг допуска (РК1 + РК2 орташасы) 50-ден төмен — емтиханға жіберілмейді.";
-      } else if (examInput !== "" && exam < 50) {
+        warningBox.textContent = "GPA үшін кредит санын енгізіңіз.";
+      } else if (notAdmitted) {
         warningBox.style.display = "block";
-        warningBox.textContent = "Емтихан баллы 50-ден төмен болғандықтан, қорытынды баға «F» қойылады.";
+        warningBox.textContent = "Рейтинг допуска (РД) 50-ден төмен! Емтиханға рұқсат жоқ.";
+      } else if (exIn !== "" && exam < 50) {
+        warningBox.style.display = "block";
+        warningBox.textContent = "Емтихан 50-ден кем — F (0.0) бағасы қойылады.";
       } else {
         warningBox.style.display = "none";
       }
 
-      document.getElementById("rk1Part").textContent = "Үлесі: " + rk1Weighted.toFixed(1);
-      document.getElementById("rk2Part").textContent = "Үлесі: " + rk2Weighted.toFixed(1);
-      document.getElementById("examPart").textContent = "Үлесі: " + examWeighted.toFixed(1);
+      q(".rk1Part").textContent = (rk1 * 0.3).toFixed(1);
+      q(".rk2Part").textContent = (rk2 * 0.3).toFixed(1);
+      q(".examPart").textContent = examWeighted.toFixed(1);
 
-      document.getElementById("semVal").textContent = semWeighted.toFixed(1);
-      document.getElementById("examVal").textContent = examWeighted.toFixed(1);
-      document.getElementById("totalScore").textContent = total.toFixed(1);
+      q(".totalScore").textContent = anyInput ? total.toFixed(1) : "0.0";
 
-      if (rk1Input === "" && rk2Input === "" && examInput === "") {
-        document.getElementById("gradeBadge").textContent = "Баға: —";
-      } else {
-        const grade = getLetterGrade(total, examInput === "" ? 50 : exam);
-        document.getElementById("gradeBadge").textContent = "Баға: " + grade.letter;
+      let letter = "—";
+      let fail = false;
+      if (anyInput) {
+        if (notAdmitted) {
+          letter = "Рұқсат жоқ";
+          fail = true;
+        } else {
+          const g = getLetterGrade(total, exIn === "" ? 50 : exam);
+          letter = g.letter;
+          fail = g.fail && exIn !== "";
+        }
       }
+      const badge = q(".gradeBadge");
+      badge.textContent = letter;
+      badge.classList.toggle("fail", fail);
 
-      if ((rk1Input !== "" || rk2Input !== "") && rk1 >= 0 && rk1 <= 100 && rk2 >= 0 && rk2 <= 100) {
-        document.getElementById("rdAvg").textContent = semAvg.toFixed(1) + " балл";
-        document.getElementById("need70").textContent = calcNeededExam(semAvg, 70);
-        document.getElementById("need90").textContent = calcNeededExam(semAvg, 90);
-      } else {
-        document.getElementById("rdAvg").textContent = "—";
-        document.getElementById("need70").textContent = "—";
-        document.getElementById("need90").textContent = "—";
+      const rdOK = rk1In !== "" && rk2In !== "" && !invalid;
+      q(".rdAvg").textContent = rdOK ? semAvg.toFixed(1) + " балл" : "—";
+
+      let need = "—";
+      if (rdOK && tgIn !== "" && target >= 0 && target <= 100) {
+        need = notAdmitted ? "рұқсат жоқ" : calcNeededExam(semAvg, target);
       }
+      q(".needTarget").textContent = need;
+
+      const complete = !invalid && rk1In !== "" && rk2In !== "" && (exIn !== "" || notAdmitted);
+      let points = null;
+      if (complete) {
+        points = notAdmitted ? 0 : GRADE_POINTS[letter];
+      }
+      return { points, credit: credit > 0 ? credit : 0 };
     }
 
-    function resetForm() {
-      document.getElementById("rk1").value = "";
-      document.getElementById("rk2").value = "";
-      document.getElementById("exam").value = "";
-      calculate();
+    function calculate() {
+      const blocks = document.querySelectorAll("#subjects .subject");
+      let sumPoints = 0, sumCredits = 0, counted = 0;
+
+      blocks.forEach(block => {
+        const r = calcSubject(block);
+        if (r.points !== null && r.credit > 0) {
+          sumPoints += r.points * r.credit;
+          sumCredits += r.credit;
+          counted++;
+        }
+      });
+
+      document.getElementById("gpaValue").textContent =
+        sumCredits > 0 ? (sumPoints / sumCredits).toFixed(2) : "—";
+      document.getElementById("gpaMeta").textContent =
+        `${counted}/${blocks.length} пән · ${sumCredits} кр`;
+
+      renderTabs();
     }
+
+    function resetAll() {
+      const count = document.querySelectorAll("#subjects .subject").length;
+      if (count > 1 && !confirm("Барлық пәндер өшіріліп, деректер тазаланады. Жалғастырасың ба?")) return;
+      document.getElementById("subjects").innerHTML = "";
+      activeIndex = 0;
+      addSubject(false);
+    }
+
+    addSubject(false);
   </script>
 
 </body>
